@@ -1,0 +1,1 @@
+# Inventario-ventas-ropa-Warami
