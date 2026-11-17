@@ -1,0 +1,2505 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tienda Warani — Gestión de Inventario y Ventas</title>
+
+  <!-- Tipografía Editorial & UI Moderna -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- SweetAlert2 para confirmaciones y alertas elegantes -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <style>
+    :root {
+      --bg-base: #f8f7fc;
+      --bg-surface: rgba(255, 255, 255, 0.78);
+      --bg-surface-strong: rgba(255, 255, 255, 0.92);
+      --border-glass: rgba(255, 255, 255, 0.85);
+      --border-subtle: rgba(124, 58, 237, 0.12);
+
+      --purple-50: #f5f3ff;
+      --purple-100: #ede9fe;
+      --purple-200: #ddd6fe;
+      --purple-300: #c4b5fd;
+      --purple-500: #8b5cf6;
+      --purple-600: #7c3aed;
+      --purple-700: #6d28d9;
+      --purple-900: #3b0764;
+
+      --text-primary: #1f1635;
+      --text-secondary: #62587a;
+      --text-muted: #9389ab;
+
+      --success-bg: #ecfdf5;
+      --success-text: #059669;
+      --warning-bg: #fffbeb;
+      --warning-text: #d97706;
+      --danger-bg: #fef2f2;
+      --danger-text: #dc2626;
+      --danger-hover: #b91c1c;
+
+      --shadow-soft: 0 12px 36px -8px rgba(91, 33, 182, 0.08), 0 4px 12px -2px rgba(31, 22, 53, 0.03);
+      --shadow-card: 0 20px 45px -15px rgba(109, 40, 217, 0.12);
+      --shadow-btn: 0 10px 24px -6px rgba(124, 58, 237, 0.42);
+
+      --radius-xl: 24px;
+      --radius-lg: 18px;
+      --radius-md: 14px;
+      --radius-sm: 10px;
+      --transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background-color: var(--bg-base);
+      color: var(--text-primary);
+      min-height: 100vh;
+      line-height: 1.5;
+      overflow-x: hidden;
+      position: relative;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Fondos orgánicos difuminados para reforzar Glassmorphism */
+    .ambient-bg {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      overflow: hidden;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 12% 10%, rgba(196, 181, 253, 0.35) 0%, transparent 42%),
+        radial-gradient(circle at 88% 15%, rgba(237, 233, 254, 0.75) 0%, transparent 45%),
+        radial-gradient(circle at 78% 85%, rgba(221, 214, 254, 0.4) 0%, transparent 48%),
+        linear-gradient(180deg, #ffffff 0%, #f5f4fa 100%);
+    }
+
+    /* Pantalla de Login (Soft UI / Glassmorphism) */
+    .login-screen {
+      min-height: 100vh;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 18px;
+      animation: fadeSlideUp 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .login-card {
+      width: 100%;
+      max-width: 430px;
+      background: var(--bg-surface);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-card);
+      padding: 36px 32px 32px;
+    }
+
+    .login-header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .login-logo {
+      width: 58px;
+      height: 58px;
+      margin: 0 auto 14px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, var(--purple-600), var(--purple-900));
+      display: grid;
+      place-items: center;
+      color: #ffffff;
+      box-shadow: 0 12px 24px -6px rgba(91, 33, 182, 0.45);
+    }
+
+    .login-header h1 {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 2.15rem;
+      font-weight: 700;
+      color: var(--purple-900);
+      line-height: 1.05;
+    }
+
+    .login-header p {
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+      margin-top: 6px;
+    }
+
+    .login-form {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .input-icon-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-leading-icon {
+      position: absolute;
+      left: 14px;
+      color: var(--purple-500);
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-icon-wrap .input-control {
+      padding-left: 42px;
+    }
+
+    .password-wrap .input-control {
+      padding-right: 46px;
+    }
+
+    .toggle-password {
+      position: absolute;
+      right: 10px;
+      appearance: none;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .toggle-password:hover {
+      color: var(--purple-700);
+      background: var(--purple-50);
+    }
+
+    /* Checkbox moderno Soft UI */
+    .checkbox-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      user-select: none;
+      font-size: 0.88rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    .checkbox-label input[type='checkbox'] {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .checkbox-box {
+      width: 20px;
+      height: 20px;
+      border-radius: 7px;
+      border: 1.5px solid var(--purple-300);
+      background: rgba(255, 255, 255, 0.9);
+      display: grid;
+      place-items: center;
+      transition: var(--transition);
+      flex-shrink: 0;
+      color: #ffffff;
+    }
+
+    .checkbox-label input[type='checkbox']:focus-visible + .checkbox-box {
+      box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.16);
+      border-color: var(--purple-600);
+    }
+
+    .checkbox-label input[type='checkbox']:checked + .checkbox-box {
+      background: linear-gradient(135deg, var(--purple-600), var(--purple-700));
+      border-color: var(--purple-700);
+      box-shadow: 0 4px 10px -2px rgba(124, 58, 237, 0.4);
+    }
+
+    .checkbox-box svg {
+      opacity: 0;
+      transform: scale(0.75);
+      transition: var(--transition);
+    }
+
+    .checkbox-label input[type='checkbox']:checked + .checkbox-box svg {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2.4px solid rgba(255, 255, 255, 0.35);
+      border-top-color: #ffffff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: inline-block;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .app-shell {
+      display: none;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 28px 20px 64px;
+    }
+
+    /* Banner informativo de Modo Demo cuando API_URL no está configurada */
+    .demo-banner {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: linear-gradient(135deg, rgba(237, 233, 254, 0.85), rgba(255, 255, 255, 0.9));
+      border: 1px solid var(--purple-200);
+      border-radius: var(--radius-md);
+      padding: 10px 18px;
+      margin-bottom: 20px;
+      font-size: 0.85rem;
+      color: var(--purple-900);
+      backdrop-filter: blur(12px);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .demo-banner.visible {
+      display: flex;
+    }
+
+    .demo-pill {
+      background: var(--purple-600);
+      color: #ffffff;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 999px;
+      flex-shrink: 0;
+    }
+
+    /* Header & Navegación */
+    .topbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 18px 26px;
+      margin-bottom: 28px;
+      background: var(--bg-surface);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-logo {
+      width: 46px;
+      height: 46px;
+      border-radius: 15px;
+      background: linear-gradient(135deg, var(--purple-600), var(--purple-900));
+      display: grid;
+      place-items: center;
+      color: #ffffff;
+      box-shadow: 0 10px 20px -6px rgba(91, 33, 182, 0.45);
+      flex-shrink: 0;
+    }
+
+    .brand-text h1 {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 1.85rem;
+      font-weight: 700;
+      line-height: 1.05;
+      letter-spacing: -0.01em;
+      color: var(--purple-900);
+    }
+
+    .brand-text span {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    .nav-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      background: rgba(245, 243, 255, 0.78);
+      padding: 6px;
+      border-radius: 16px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .nav-btn {
+      appearance: none;
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 600;
+      padding: 10px 18px;
+      border-radius: 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: var(--transition);
+    }
+
+    .nav-btn:hover {
+      color: var(--purple-700);
+      background: rgba(255, 255, 255, 0.65);
+    }
+
+    .nav-btn.active {
+      background: linear-gradient(135deg, var(--purple-600), var(--purple-700));
+      color: #ffffff;
+      box-shadow: 0 8px 18px -6px rgba(109, 40, 217, 0.5);
+    }
+
+    .topbar-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn-logout {
+      appearance: none;
+      border: 1px solid rgba(124, 58, 237, 0.18);
+      background: rgba(255, 255, 255, 0.78);
+      color: var(--purple-700);
+      font-family: inherit;
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 9px 14px;
+      border-radius: 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: var(--transition);
+      white-space: nowrap;
+    }
+
+    .btn-logout:hover {
+      background: var(--danger-bg);
+      border-color: rgba(220, 38, 38, 0.25);
+      color: var(--danger-text);
+    }
+
+    .vendor-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(237, 233, 254, 0.85);
+      border: 1px solid var(--purple-200);
+      color: var(--purple-900);
+      font-size: 0.82rem;
+      font-weight: 500;
+      padding: 8px 13px;
+      border-radius: 12px;
+      white-space: nowrap;
+      backdrop-filter: blur(8px);
+    }
+
+    .vendor-badge svg {
+      color: var(--purple-600);
+      flex-shrink: 0;
+    }
+
+    .vendor-badge strong {
+      font-weight: 700;
+      color: var(--purple-700);
+    }
+
+    /* Vistas / Secciones */
+    .view-section {
+      display: none;
+      animation: fadeSlideUp 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .view-section.active {
+      display: block;
+    }
+
+    @keyframes fadeSlideUp {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Tarjetas Glassmorphism */
+    .glass-card {
+      background: var(--bg-surface);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-card);
+      padding: 28px;
+    }
+
+    .section-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    .section-title h2 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--purple-900);
+      letter-spacing: -0.015em;
+    }
+
+    .section-title p {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      margin-top: 3px;
+    }
+
+    /* Layouts de Formularios */
+    .split-layout {
+      display: grid;
+      grid-template-columns: 1.35fr 0.95fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    @media (max-width: 880px) {
+      .split-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    @media (max-width: 600px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .col-span-2 {
+      grid-column: span 2;
+    }
+
+    @media (max-width: 600px) {
+      .col-span-2 {
+        grid-column: span 1;
+      }
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .field-group label {
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .field-hint {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    .input-control {
+      width: 100%;
+      padding: 13px 16px;
+      border-radius: var(--radius-md);
+      border: 1.5px solid rgba(139, 92, 246, 0.16);
+      background: var(--bg-surface-strong);
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: var(--transition);
+      outline: none;
+    }
+
+    .input-control:focus {
+      border-color: var(--purple-500);
+      background: #ffffff;
+      box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.14);
+    }
+
+    .input-control[readonly] {
+      background: rgba(245, 243, 255, 0.65);
+      color: var(--text-secondary);
+      cursor: not-allowed;
+      border-style: dashed;
+      border-color: var(--purple-200);
+    }
+
+    .input-with-prefix {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .currency-prefix {
+      position: absolute;
+      left: 15px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--purple-600);
+      pointer-events: none;
+    }
+
+    .input-with-prefix .input-control {
+      padding-left: 46px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Switch Segmentado (Prenda Existente / Nueva Prenda) */
+    .segmented-switch {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      padding: 5px;
+      background: var(--purple-50);
+      border: 1px solid var(--purple-100);
+      border-radius: 15px;
+      margin-bottom: 22px;
+      position: relative;
+    }
+
+    .switch-option {
+      appearance: none;
+      border: none;
+      background: transparent;
+      padding: 11px 14px;
+      border-radius: 11px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .switch-option.active {
+      background: #ffffff;
+      color: var(--purple-700);
+      box-shadow: 0 4px 14px rgba(109, 40, 217, 0.12);
+    }
+
+    /* Panel de Resumen / Sumatorias en vivo */
+    .summary-panel {
+      background: linear-gradient(155deg, rgba(255, 255, 255, 0.92), rgba(245, 243, 255, 0.88));
+      border: 1px solid var(--purple-200);
+      border-radius: var(--radius-xl);
+      padding: 26px;
+      box-shadow: var(--shadow-soft);
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .summary-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--purple-600);
+    }
+
+    .summary-box {
+      background: #ffffff;
+      border: 1px solid rgba(221, 214, 254, 0.7);
+      border-radius: var(--radius-lg);
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .summary-box.highlight {
+      background: linear-gradient(135deg, var(--purple-700), var(--purple-900));
+      border: none;
+      color: #ffffff;
+      box-shadow: 0 14px 28px -10px rgba(76, 29, 149, 0.45);
+    }
+
+    .summary-label {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .summary-box.highlight .summary-label {
+      color: var(--purple-200);
+    }
+
+    .summary-value {
+      font-size: 1.85rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      font-variant-numeric: tabular-nums;
+      color: var(--purple-900);
+    }
+
+    .summary-box.highlight .summary-value {
+      color: #ffffff;
+    }
+
+    .summary-sub {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    .summary-box.highlight .summary-sub {
+      color: var(--purple-200);
+    }
+
+    .profit-positive {
+      color: var(--success-text);
+    }
+
+    .profit-negative {
+      color: var(--danger-text);
+    }
+
+    /* Botones */
+    .btn-primary {
+      appearance: none;
+      border: none;
+      width: 100%;
+      padding: 14px 22px;
+      border-radius: var(--radius-md);
+      background: linear-gradient(135deg, var(--purple-600), var(--purple-700));
+      color: #ffffff;
+      font-family: inherit;
+      font-size: 0.96rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: var(--shadow-btn);
+      transition: var(--transition);
+      margin-top: 8px;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      background: linear-gradient(135deg, var(--purple-500), var(--purple-700));
+      box-shadow: 0 14px 28px -6px rgba(124, 58, 237, 0.5);
+    }
+
+    .btn-primary:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.65;
+      cursor: wait;
+    }
+
+    .btn-soft {
+      appearance: none;
+      border: 1px solid var(--purple-200);
+      background: rgba(255, 255, 255, 0.85);
+      color: var(--purple-700);
+      font-family: inherit;
+      font-size: 0.86rem;
+      font-weight: 600;
+      padding: 9px 16px;
+      border-radius: 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      transition: var(--transition);
+    }
+
+    .btn-soft:hover {
+      background: var(--purple-50);
+      border-color: var(--purple-300);
+    }
+
+    /* Botón Borrar con icono papelera roja */
+    .btn-delete {
+      appearance: none;
+      border: 1px solid rgba(220, 38, 38, 0.2);
+      background: var(--danger-bg);
+      color: var(--danger-text);
+      font-family: inherit;
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 7px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: var(--transition);
+    }
+
+    .btn-delete:hover {
+      background: #fee2e2;
+      border-color: rgba(220, 38, 38, 0.4);
+      color: var(--danger-hover);
+      transform: translateY(-1px);
+    }
+
+    /* Dashboard: Tarjetas de Métricas */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 18px;
+      margin-bottom: 26px;
+    }
+
+    @media (max-width: 980px) {
+      .metrics-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 540px) {
+      .metrics-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .metric-card {
+      background: var(--bg-surface);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-xl);
+      padding: 22px;
+      box-shadow: var(--shadow-soft);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: var(--transition);
+    }
+
+    .metric-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-card);
+    }
+
+    .metric-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .metric-label {
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .metric-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: var(--purple-100);
+      color: var(--purple-700);
+      display: grid;
+      place-items: center;
+    }
+
+    .metric-value {
+      font-size: 1.65rem;
+      font-weight: 700;
+      color: var(--purple-900);
+      letter-spacing: -0.02em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .metric-caption {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    /* Tablas Modernas */
+    .dashboard-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .table-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .search-box {
+      position: relative;
+      width: 280px;
+      max-width: 100%;
+    }
+
+    .search-box svg {
+      position: absolute;
+      left: 13px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 10px 14px 10px 38px;
+      border-radius: 12px;
+      border: 1px solid var(--purple-200);
+      background: rgba(255, 255, 255, 0.85);
+      font-family: inherit;
+      font-size: 0.88rem;
+      color: var(--text-primary);
+      outline: none;
+      transition: var(--transition);
+    }
+
+    .search-box input:focus {
+      border-color: var(--purple-500);
+      box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.12);
+    }
+
+    .table-responsive {
+      width: 100%;
+      overflow-x: auto;
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(221, 214, 254, 0.55);
+      background: rgba(255, 255, 255, 0.72);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      min-width: 600px;
+    }
+
+    thead th {
+      background: rgba(245, 243, 255, 0.9);
+      color: var(--purple-900);
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--purple-100);
+    }
+
+    tbody td {
+      padding: 14px 18px;
+      font-size: 0.91rem;
+      color: var(--text-primary);
+      border-bottom: 1px solid rgba(237, 233, 254, 0.7);
+      vertical-align: middle;
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    tbody tr:hover {
+      background: rgba(245, 243, 255, 0.45);
+    }
+
+    .num-cell {
+      font-variant-numeric: tabular-nums;
+      font-weight: 600;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .badge-ok {
+      background: var(--success-bg);
+      color: var(--success-text);
+    }
+
+    .badge-low {
+      background: var(--warning-bg);
+      color: var(--warning-text);
+    }
+
+    .badge-out {
+      background: var(--danger-bg);
+      color: var(--danger-text);
+    }
+
+    .badge-purple {
+      background: var(--purple-100);
+      color: var(--purple-700);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 36px 20px;
+      color: var(--text-muted);
+      font-size: 0.92rem;
+    }
+
+    .stock-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: var(--purple-100);
+      color: var(--purple-700);
+    }
+
+    /* Toast fallback cuando SweetAlert no está disponible */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--purple-900);
+      color: #ffffff;
+      padding: 14px 20px;
+      border-radius: 14px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      box-shadow: 0 18px 36px rgba(31, 22, 53, 0.25);
+      z-index: 9999;
+      opacity: 0;
+      transform: translateY(16px);
+      pointer-events: none;
+      transition: var(--transition);
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 720px) {
+      .topbar {
+        padding: 16px;
+      }
+      .nav-tabs {
+        width: 100%;
+      }
+      .topbar-actions {
+        width: 100%;
+        justify-content: space-between;
+      }
+      .nav-btn {
+        flex: 1;
+        justify-content: center;
+        padding: 10px 10px;
+        font-size: 0.83rem;
+      }
+      .btn-logout,
+      .vendor-badge {
+        width: 100%;
+        justify-content: center;
+      }
+      .glass-card {
+        padding: 20px;
+      }
+      .login-card {
+        padding: 28px 22px 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="ambient-bg" aria-hidden="true"></div>
+
+  <!-- =========================================================
+       PANTALLA DE LOGIN (PROTECCIÓN DE RUTAS)
+       ========================================================= -->
+  <section id="loginScreen" class="login-screen" aria-label="Iniciar sesión en Tienda Warani">
+    <div class="login-card">
+      <div class="login-header">
+        <div class="login-logo" aria-hidden="true">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <path d="M16 10a4 4 0 0 1-8 0"></path>
+          </svg>
+        </div>
+        <h1>Tienda Warani</h1>
+        <p>Acceso exclusivo para gestión de inventario y ventas</p>
+      </div>
+
+      <form id="formLogin" class="login-form" autocomplete="on">
+        <div class="field-group">
+          <label for="loginUsername">Usuario</label>
+          <div class="input-icon-wrap">
+            <span class="input-leading-icon" aria-hidden="true">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+            </span>
+            <input
+              id="loginUsername"
+              name="username"
+              type="text"
+              placeholder="Ingresa tu usuario"
+              class="input-control"
+              autocomplete="username"
+              required
+            />
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label for="loginPassword">Contraseña</label>
+          <div class="input-icon-wrap password-wrap">
+            <span class="input-leading-icon" aria-hidden="true">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+            </span>
+            <input
+              id="loginPassword"
+              name="password"
+              type="password"
+              placeholder="Ingresa tu contraseña"
+              class="input-control"
+              autocomplete="current-password"
+              required
+            />
+            <button
+              type="button"
+              id="togglePasswordBtn"
+              class="toggle-password"
+              aria-label="Mostrar u ocultar contraseña"
+              title="Ver contraseña"
+            >
+              <svg id="eyeIconOpen" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+              <svg id="eyeIconClosed" class="hidden" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                <line x1="1" y1="1" x2="23" y2="23"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <label class="checkbox-label" for="loginRemember">
+          <input id="loginRemember" type="checkbox" />
+          <span class="checkbox-box" aria-hidden="true">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </span>
+          <span>Mantener sesión iniciada</span>
+        </label>
+
+        <button type="submit" id="btnLoginSubmit" class="btn-primary" style="margin-top: 6px;">
+          <span id="loginBtnSpinner" class="spinner hidden" aria-hidden="true"></span>
+          <span id="loginBtnText">Ingresar</span>
+        </button>
+      </form>
+    </div>
+  </section>
+
+  <div id="appShell" class="app-shell">
+    <!-- Aviso sutil si aún no se reemplazó API_URL -->
+    <div id="demoBanner" class="demo-banner" role="status">
+      <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+        <span class="demo-pill">Modo Demo</span>
+        <span>
+          Establece tu enlace real en <code>API_URL</code> dentro de <code>index.html</code> para sincronizar con Google Apps Script.
+        </span>
+      </div>
+    </div>
+
+    <!-- Header & Navegación Principal -->
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-logo" aria-hidden="true">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <path d="M16 10a4 4 0 0 1-8 0"></path>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>Tienda Warani</h1>
+          <span>Boutique &bull; Inventario &amp; Ventas</span>
+        </div>
+      </div>
+
+      <div class="topbar-actions">
+        <nav class="nav-tabs" aria-label="Navegación principal">
+          <button type="button" class="nav-btn active" data-tab="venta">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="9" cy="21" r="1"></circle>
+              <circle cx="20" cy="21" r="1"></circle>
+              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+            </svg>
+            Registrar Venta
+          </button>
+
+          <button type="button" class="nav-btn" data-tab="ingreso">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+              <polyline points="12 22.08 12 12 22 6.27"></polyline>
+              <line x1="2" y1="6.27" x2="12" y2="12"></line>
+            </svg>
+            Registrar Ingreso
+          </button>
+
+          <button type="button" class="nav-btn" data-tab="dashboard">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="7" height="9" rx="2"></rect>
+              <rect x="14" y="3" width="7" height="5" rx="2"></rect>
+              <rect x="14" y="12" width="7" height="9" rx="2"></rect>
+              <rect x="3" y="16" width="7" height="5" rx="2"></rect>
+            </svg>
+            Dashboard &amp; Inventario
+          </button>
+        </nav>
+
+        <span id="vendedorBadge" class="vendor-badge">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          Vendedor: <strong id="vendedorNombre">—</strong>
+        </span>
+
+        <button type="button" id="btnLogout" class="btn-logout" title="Cerrar Sesión">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+          Cerrar Sesión
+        </button>
+      </div>
+    </header>
+
+    <!-- =========================================================
+         VISTA 1: REGISTRAR VENTA
+         ========================================================= -->
+    <section id="view-venta" class="view-section active">
+      <div class="split-layout">
+        <div class="glass-card">
+          <div class="section-header">
+            <div class="section-title">
+              <h2>Nueva Venta</h2>
+              <p>Selecciona una prenda del catálogo para calcular el total y margen al instante.</p>
+            </div>
+            <span id="ventaStockBadge" class="stock-pill hidden">Stock: 0 uds.</span>
+          </div>
+
+          <form id="formVenta" autocomplete="off">
+            <div class="form-grid">
+              <div class="field-group col-span-2">
+                <label for="ventaProducto">
+                  Prenda del catálogo
+                  <span class="field-hint">Carga dinámica</span>
+                </label>
+                <select id="ventaProducto" class="input-control" required>
+                  <option value="">Cargando catálogo...</option>
+                </select>
+              </div>
+
+              <div class="field-group">
+                <label for="ventaCantidad">Cantidad</label>
+                <input
+                  id="ventaCantidad"
+                  type="number"
+                  min="1"
+                  step="1"
+                  value="1"
+                  class="input-control"
+                  required
+                />
+              </div>
+
+              <div class="field-group">
+                <label for="ventaPrecio">
+                  Precio de Venta
+                  <span class="field-hint">Editable</span>
+                </label>
+                <div class="input-with-prefix">
+                  <span class="currency-prefix">Bs.</span>
+                  <input
+                    id="ventaPrecio"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="0.00"
+                    class="input-control"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div class="field-group col-span-2">
+                <label for="ventaCosto">
+                  Costo de Compra
+                  <span class="field-hint">Solo lectura</span>
+                </label>
+                <div class="input-with-prefix">
+                  <span class="currency-prefix">Bs.</span>
+                  <input
+                    id="ventaCosto"
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    class="input-control"
+                    readonly
+                  />
+                </div>
+              </div>
+            </div>
+
+            <button type="submit" id="btnSubmitVenta" class="btn-primary" style="margin-top: 22px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              Confirmar Venta
+            </button>
+          </form>
+        </div>
+
+        <!-- Sumatorias en Vivo de Venta -->
+        <aside class="summary-panel" aria-live="polite">
+          <span class="summary-title">Resumen en vivo</span>
+
+          <div class="summary-box highlight">
+            <span class="summary-label">Total de la Venta</span>
+            <div id="liveVentaTotal" class="summary-value">Bs. 0.00</div>
+            <span id="liveVentaDetalle" class="summary-sub">0 unidades &times; Bs. 0.00</span>
+          </div>
+
+          <div class="summary-box">
+            <span class="summary-label">Ganancia Estimada</span>
+            <div id="liveVentaGanancia" class="summary-value profit-positive">Bs. 0.00</div>
+            <span id="liveVentaMargen" class="summary-sub">Margen sobre venta: 0.0%</span>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         VISTA 2: REGISTRAR INGRESO
+         ========================================================= -->
+    <section id="view-ingreso" class="view-section">
+      <div class="split-layout">
+        <div class="glass-card">
+          <div class="section-header">
+            <div class="section-title">
+              <h2>Registrar Ingreso de Mercadería</h2>
+              <p>Repón stock de prendas existentes o incorpora nuevos modelos al catálogo.</p>
+            </div>
+          </div>
+
+          <!-- Switch Prenda Existente / Nueva Prenda -->
+          <div class="segmented-switch" role="tablist" aria-label="Tipo de prenda">
+            <button
+              type="button"
+              id="switchExistente"
+              class="switch-option active"
+              role="tab"
+              aria-selected="true"
+            >
+              Prenda Existente
+            </button>
+            <button
+              type="button"
+              id="switchNueva"
+              class="switch-option"
+              role="tab"
+              aria-selected="false"
+            >
+              Nueva Prenda
+            </button>
+          </div>
+
+          <form id="formIngreso" autocomplete="off">
+            <div class="form-grid">
+              <!-- Contenedor Prenda Existente -->
+              <div id="groupIngresoExistente" class="field-group col-span-2">
+                <label for="ingresoProductoSelect">Seleccionar prenda</label>
+                <select id="ingresoProductoSelect" class="input-control" required>
+                  <option value="">Cargando catálogo...</option>
+                </select>
+              </div>
+
+              <!-- Contenedor Nueva Prenda -->
+              <div id="groupIngresoNueva" class="field-group col-span-2 hidden">
+                <label for="ingresoProductoInput">Nombre de la nueva prenda</label>
+                <input
+                  id="ingresoProductoInput"
+                  type="text"
+                  placeholder="Ej. Blusa Lino Lavanda M"
+                  class="input-control"
+                />
+              </div>
+
+              <div class="field-group">
+                <label for="ingresoCantidad">Cantidad ingresada</label>
+                <input
+                  id="ingresoCantidad"
+                  type="number"
+                  min="1"
+                  step="1"
+                  value="1"
+                  class="input-control"
+                  required
+                />
+              </div>
+
+              <div class="field-group">
+                <label for="ingresoCostoTotal">Costo Total del Lote</label>
+                <div class="input-with-prefix">
+                  <span class="currency-prefix">Bs.</span>
+                  <input
+                    id="ingresoCostoTotal"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="0.00"
+                    class="input-control"
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+
+            <button type="submit" id="btnSubmitIngreso" class="btn-primary" style="margin-top: 22px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              Guardar Ingreso en Inventario
+            </button>
+          </form>
+        </div>
+
+        <!-- Cálculos en Vivo de Costo Promedio Unitario -->
+        <aside class="summary-panel" aria-live="polite">
+          <span class="summary-title">Cálculo de Costo en Vivo</span>
+
+          <div class="summary-box highlight">
+            <span class="summary-label">Costo Promedio Unitario</span>
+            <div id="liveIngresoUnitario" class="summary-value">Bs. 0.00</div>
+            <span id="liveIngresoFormula" class="summary-sub">Costo Total &divide; Cantidad</span>
+          </div>
+
+          <div class="summary-box">
+            <span class="summary-label">Costo Promedio Ponderado Final</span>
+            <div id="liveIngresoPonderado" class="summary-value">Bs. 0.00</div>
+            <span id="liveIngresoStockInfo" class="summary-sub">
+              Considerando stock actual del catálogo
+            </span>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         VISTA 3: DASHBOARD & INVENTARIO
+         ========================================================= -->
+    <section id="view-dashboard" class="view-section">
+      <!-- Tarjetas de Métricas -->
+      <div class="metrics-grid">
+        <article class="metric-card">
+          <div class="metric-top">
+            <span class="metric-label">Ingresos</span>
+            <div class="metric-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="1" x2="12" y2="23"></line>
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+              </svg>
+            </div>
+          </div>
+          <div id="metricIngresos" class="metric-value">Bs. 0.00</div>
+          <span class="metric-caption">Total facturado en ventas</span>
+        </article>
+
+        <article class="metric-card">
+          <div class="metric-top">
+            <span class="metric-label">Ganancia</span>
+            <div class="metric-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                <polyline points="17 6 23 6 23 12"></polyline>
+              </svg>
+            </div>
+          </div>
+          <div id="metricGanancia" class="metric-value">Bs. 0.00</div>
+          <span class="metric-caption">Utilidad neta acumulada</span>
+        </article>
+
+        <article class="metric-card">
+          <div class="metric-top">
+            <span class="metric-label">Prendas Vendidas</span>
+            <div class="metric-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20.38 3.46L16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"></path>
+              </svg>
+            </div>
+          </div>
+          <div id="metricVendidas" class="metric-value">0</div>
+          <span class="metric-caption">Unidades entregadas</span>
+        </article>
+
+        <article class="metric-card">
+          <div class="metric-top">
+            <span class="metric-label">Valor en Bodega</span>
+            <div class="metric-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+              </svg>
+            </div>
+          </div>
+          <div id="metricBodega" class="metric-value">Bs. 0.00</div>
+          <span class="metric-caption">Capital invertido en stock</span>
+        </article>
+      </div>
+
+      <div class="dashboard-stack">
+        <!-- NUEVO: Panel de Inventario Completo -->
+        <div class="glass-card">
+          <div class="table-toolbar">
+            <div class="section-title">
+              <h2>Panel de Inventario Completo</h2>
+              <p>Catálogo actualizado de Tienda Warani con precios, costos y existencias.</p>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+              <div class="search-box">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input id="searchInventario" type="search" placeholder="Buscar prenda..." />
+              </div>
+
+              <button type="button" id="btnRefrescarDashboard" class="btn-soft">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="23 4 23 10 17 10"></polyline>
+                  <polyline points="1 20 1 14 7 14"></polyline>
+                  <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                </svg>
+                Actualizar
+              </button>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Precio</th>
+                  <th>Costo</th>
+                  <th>Stock Actual</th>
+                  <th style="text-align: right;">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyInventario">
+                <tr>
+                  <td colspan="5" class="empty-state">Cargando inventario...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tabla de Historial de Ventas -->
+        <div class="glass-card">
+          <div class="section-header" style="margin-bottom: 16px;">
+            <div class="section-title">
+              <h2>Historial de Ventas</h2>
+              <p>Registro cronológico de ventas realizadas.</p>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Prenda</th>
+                  <th>Cantidad</th>
+                  <th>Precio Unit.</th>
+                  <th>Total</th>
+                  <th>Ganancia</th>
+                  <th>Vendedor</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyVentas">
+                <tr>
+                  <td colspan="7" class="empty-state">Cargando historial de ventas...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div id="toastFallback" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const API_URL = 'https://script.google.com/macros/s/AKfycbzGC6hRw1V5SlQRP06QhM-c2pRpZ8Q60jAfs7KE-D23pqqc6g8Ay1k1Q315RDsZUe8/exec';
+
+    // Estado global de la SPA
+    const state = {
+      catalogo: [],
+      ventas: [],
+      metricas: {
+        ingresos: 0,
+        ganancia: 0,
+        prendasVendidas: 0,
+        valorBodega: 0
+      },
+      ingresoModo: 'existente', // 'existente' | 'nueva'
+      filtroInventario: ''
+    };
+
+    // Datos iniciales de ejemplo (solo activos mientras API_URL sea el placeholder)
+    const demoStore = {
+      catalogo: [
+        { nombre: 'Vestido Midi Seda Lila', precio: 240, costo: 135, stock: 8 },
+        { nombre: 'Blusa Satinada Perla', precio: 145, costo: 78, stock: 12 },
+        { nombre: 'Pantalón Palazzo Crema', precio: 210, costo: 120, stock: 6 },
+        { nombre: 'Cárdigan Tejido Lavanda', precio: 185, costo: 98, stock: 3 },
+        { nombre: 'Falda Plisada Violeta', precio: 165, costo: 88, stock: 0 }
+      ],
+      ventas: [
+        { fecha: '17/11/2026 08:45', producto: 'Vestido Midi Seda Lila', cantidad: 2, precioVenta: 240, total: 480, ganancia: 210, vendedor: 'Camila' },
+        { fecha: '16/11/2026 18:20', producto: 'Blusa Satinada Perla', cantidad: 3, precioVenta: 145, total: 435, ganancia: 201, vendedor: 'Valeria' },
+        { fecha: '15/11/2026 15:10', producto: 'Pantalón Palazzo Crema', cantidad: 1, precioVenta: 210, total: 210, ganancia: 90, vendedor: 'Camila' }
+      ]
+    };
+
+    const AUTH_STORAGE_KEY = 'warani_auth_session';
+    const VENDOR_STORAGE_KEY = 'vendedor_actual';
+
+    const isDemoMode = () => !API_URL || API_URL === 'TU_URL_DE_APPS_SCRIPT_AQUI';
+
+    // Utilidades de formato
+    const formatBs = (value) => {
+      const num = Number(value) || 0;
+      return `Bs. ${num.toLocaleString('es-BO', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      })}`;
+    };
+
+    const escapeHtml = (str) =>
+      String(str ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+
+    // Toast no intrusivo con SweetAlert2 o fallback nativo
+    function showToast(icon, title, text = '') {
+      if (typeof Swal !== 'undefined') {
+        return Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon,
+          title,
+          text,
+          showConfirmButton: false,
+          timer: 3200,
+          timerProgressBar: true,
+          background: '#ffffff',
+          color: '#1f1635'
+        });
+      }
+      const toast = document.getElementById('toastFallback');
+      toast.textContent = `${title}${text ? ': ' + text : ''}`;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3200);
+      return Promise.resolve();
+    }
+
+    // Notificaciones modales con SweetAlert2 o fallback nativo
+    function notify(icon, title, text) {
+      if (typeof Swal !== 'undefined') {
+        return Swal.fire({
+          icon,
+          title,
+          text,
+          confirmButtonColor: '#7c3aed',
+          background: '#ffffff',
+          color: '#1f1635',
+          borderRadius: '20px'
+        });
+      }
+      return showToast(icon, title, text);
+    }
+
+    // =========================================================
+    // AUTENTICACIÓN Y PROTECCIÓN DE RUTAS
+    // =========================================================
+    function getStoredSession() {
+      return localStorage.getItem(AUTH_STORAGE_KEY) || sessionStorage.getItem(AUTH_STORAGE_KEY);
+    }
+
+    function getStoredVendedor() {
+      const direct = sessionStorage.getItem(VENDOR_STORAGE_KEY) || localStorage.getItem(VENDOR_STORAGE_KEY);
+      if (direct) return direct;
+      const rawSession = getStoredSession();
+      if (rawSession) {
+        try {
+          const parsed = JSON.parse(rawSession);
+          if (parsed?.username) return parsed.username;
+        } catch {}
+      }
+      return 'Desconocido';
+    }
+
+    function updateVendedorBadge() {
+      const el = document.getElementById('vendedorNombre');
+      if (el) {
+        el.textContent = getStoredVendedor();
+      }
+    }
+
+    function showAppShell() {
+      updateVendedorBadge();
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('appShell').style.display = 'block';
+    }
+
+    function showLoginScreen() {
+      document.getElementById('appShell').style.display = 'none';
+      document.getElementById('loginScreen').style.display = 'flex';
+    }
+
+    function setLoginLoading(isLoading) {
+      const btn = document.getElementById('btnLoginSubmit');
+      const spinner = document.getElementById('loginBtnSpinner');
+      const text = document.getElementById('loginBtnText');
+      btn.disabled = isLoading;
+      spinner.classList.toggle('hidden', !isLoading);
+      text.textContent = isLoading ? 'Validando...' : 'Ingresar';
+    }
+
+    function setupPasswordToggle() {
+      const passwordInput = document.getElementById('loginPassword');
+      const toggleBtn = document.getElementById('togglePasswordBtn');
+      const eyeOpen = document.getElementById('eyeIconOpen');
+      const eyeClosed = document.getElementById('eyeIconClosed');
+
+      toggleBtn.addEventListener('click', () => {
+        const isHidden = passwordInput.type === 'password';
+        passwordInput.type = isHidden ? 'text' : 'password';
+        eyeOpen.classList.toggle('hidden', isHidden);
+        eyeClosed.classList.toggle('hidden', !isHidden);
+      });
+    }
+
+    async function handleLoginSubmit(e) {
+      e.preventDefault();
+      const username = document.getElementById('loginUsername').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      const remember = document.getElementById('loginRemember').checked;
+
+      if (!username || !password) {
+        showToast('warning', 'Campos incompletos', 'Ingresa usuario y contraseña.');
+        return;
+      }
+
+      setLoginLoading(true);
+
+      try {
+        let data;
+        if (isDemoMode()) {
+          data = { status: 'success', token: 'demo-token', username };
+        } else {
+          const response = await fetch(API_URL, {
+            method: 'POST',
+            redirect: 'follow',
+            headers: {
+              'Content-Type': 'text/plain;charset=utf-8'
+            },
+            body: JSON.stringify({
+              action: 'login',
+              username,
+              password
+            })
+          });
+
+          const rawText = await response.text();
+          try {
+            data = rawText ? JSON.parse(rawText) : {};
+          } catch {
+            data = { status: 'error' };
+          }
+        }
+
+        if (data && data.status === 'success') {
+          const vendedorActual = data.username || username;
+          const sessionData = JSON.stringify({
+            token: data.token || 'warani_session_ok',
+            username: vendedorActual,
+            loggedAt: Date.now()
+          });
+
+          localStorage.removeItem(AUTH_STORAGE_KEY);
+          sessionStorage.removeItem(AUTH_STORAGE_KEY);
+          localStorage.removeItem(VENDOR_STORAGE_KEY);
+          sessionStorage.removeItem(VENDOR_STORAGE_KEY);
+
+          if (remember) {
+            localStorage.setItem(AUTH_STORAGE_KEY, sessionData);
+            localStorage.setItem(VENDOR_STORAGE_KEY, vendedorActual);
+          } else {
+            sessionStorage.setItem(AUTH_STORAGE_KEY, sessionData);
+            sessionStorage.setItem(VENDOR_STORAGE_KEY, vendedorActual);
+          }
+
+          showAppShell();
+          showToast('success', `¡Bienvenida, ${vendedorActual}!`, 'Sesión iniciada correctamente.');
+          cargarDatosDashboard();
+        } else {
+          showToast('error', 'Credenciales incorrectas', data?.message || 'Usuario o contraseña inválidos.');
+        }
+      } catch (err) {
+        console.error('Error en login:', err);
+        showToast('error', 'Credenciales incorrectas', 'No se pudo validar el acceso.');
+      } finally {
+        setLoginLoading(false);
+      }
+    }
+
+    function handleLogout() {
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.reload();
+    }
+
+    async function askConfirm(title, text, confirmButtonText = 'Sí, continuar') {
+      if (typeof Swal !== 'undefined') {
+        const result = await Swal.fire({
+          title,
+          text,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#dc2626',
+          cancelButtonColor: '#8b5cf6',
+          confirmButtonText,
+          cancelButtonText: 'Cancelar',
+          reverseButtons: true
+        });
+        return result.isConfirmed;
+      }
+      return window.confirm(`${title}\n\n${text}`);
+    }
+
+    // Navegación entre pestañas
+    function setupNavigation() {
+      const buttons = document.querySelectorAll('.nav-btn');
+      const sections = {
+        venta: document.getElementById('view-venta'),
+        ingreso: document.getElementById('view-ingreso'),
+        dashboard: document.getElementById('view-dashboard')
+      };
+
+      buttons.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const target = btn.dataset.tab;
+          buttons.forEach((b) => b.classList.toggle('active', b === btn));
+          Object.entries(sections).forEach(([key, el]) => {
+            el.classList.toggle('active', key === target);
+          });
+        });
+      });
+    }
+
+    // Normalizador flexible de la respuesta de Apps Script
+    function normalizeDashboardData(raw) {
+      const rawCatalog = raw.catalogo || raw.inventario || raw.productos || raw.catalog || [];
+      const catalogo = rawCatalog.map((item) => ({
+        nombre: String(item.nombre ?? item.producto ?? item.name ?? '').trim(),
+        precio: Number(item.precio ?? item.precioVenta ?? item.price ?? 0),
+        costo: Number(item.costo ?? item.costoCompra ?? item.costoPromedio ?? item.cost ?? 0),
+        stock: Number(item.stock ?? item.stockActual ?? item.cantidad ?? 0)
+      })).filter((p) => p.nombre !== '');
+
+      const rawSales = raw.ventas || raw.historialVentas || raw.sales || [];
+      const ventas = rawSales.map((v) => {
+        const cantidad = Number(v.cantidad ?? v.qty ?? 1);
+        const precioVenta = Number(v.precioVenta ?? v.precio ?? 0);
+        const total = Number(v.total ?? cantidad * precioVenta);
+        const ganancia = Number(v.ganancia ?? v.profit ?? 0);
+        return {
+          fecha: v.fecha || v.date || '-',
+          producto: v.producto || v.nombre || '-',
+          cantidad,
+          precioVenta: precioVenta || (cantidad > 0 ? total / cantidad : 0),
+          total,
+          ganancia,
+          vendedor: String(v.vendedor ?? v.seller ?? v.usuario ?? 'Desconocido').trim() || 'Desconocido'
+        };
+      });
+
+      const m = raw.metricas || raw.resumen || raw;
+      const calcIngresos = ventas.reduce((acc, v) => acc + v.total, 0);
+      const calcGanancia = ventas.reduce((acc, v) => acc + v.ganancia, 0);
+      const calcVendidas = ventas.reduce((acc, v) => acc + v.cantidad, 0);
+      const calcBodega = catalogo.reduce((acc, p) => acc + (p.costo * Math.max(0, p.stock)), 0);
+
+      return {
+        catalogo,
+        ventas,
+        metricas: {
+          ingresos: Number(m.ingresos ?? m.totalIngresos ?? calcIngresos),
+          ganancia: Number(m.ganancia ?? m.totalGanancia ?? calcGanancia),
+          prendasVendidas: Number(m.prendasVendidas ?? m.unidadesVendidas ?? calcVendidas),
+          valorBodega: Number(m.valorBodega ?? m.valorEnBodega ?? calcBodega)
+        }
+      };
+    }
+
+    // Petición POST estándar para Google Apps Script
+    async function postToApi(payload) {
+      if (isDemoMode()) {
+        return handleDemoPost(payload);
+      }
+
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        redirect: 'follow',
+        headers: {
+          'Content-Type': 'text/plain;charset=utf-8'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const text = await response.text();
+      let data = {};
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch {
+        data = { status: response.ok ? 'ok' : 'error', raw: text };
+      }
+
+      if (!response.ok || data.status === 'error' || data.ok === false) {
+        throw new Error(data.message || data.error || 'Error al comunicarse con el servidor.');
+      }
+
+      return data;
+    }
+
+    // Simulación local interactiva en Modo Demo
+    function handleDemoPost(payload) {
+      if (payload.action === 'registrarVenta') {
+        const item = state.catalogo.find((p) => p.nombre === payload.producto);
+        if (item) {
+          item.stock = Math.max(0, item.stock - Number(payload.cantidad));
+          item.precio = Number(payload.precioVenta);
+        }
+        const now = new Date();
+        const fecha = `${now.toLocaleDateString('es-BO')} ${now.toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' })}`;
+        demoStore.ventas.unshift({
+          fecha,
+          producto: payload.producto,
+          cantidad: Number(payload.cantidad),
+          precioVenta: Number(payload.precioVenta),
+          total: Number(payload.total),
+          ganancia: Number(payload.ganancia),
+          vendedor: payload.vendedor || 'Desconocido'
+        });
+        demoStore.catalogo = state.catalogo;
+        return { ok: true };
+      }
+
+      if (payload.action === 'registrarIngreso') {
+        const qty = Number(payload.cantidad);
+        const totalCost = Number(payload.costoTotal);
+        const unitCost = qty > 0 ? totalCost / qty : 0;
+        const existing = demoStore.catalogo.find(
+          (p) => p.nombre.toLowerCase() === String(payload.producto).trim().toLowerCase()
+        );
+
+        if (existing) {
+          const prevVal = Math.max(0, existing.stock) * existing.costo;
+          const newStock = Math.max(0, existing.stock) + qty;
+          existing.costo = newStock > 0 ? (prevVal + totalCost) / newStock : unitCost;
+          existing.stock = newStock;
+        } else {
+          demoStore.catalogo.push({
+            nombre: String(payload.producto).trim(),
+            precio: Number((unitCost * 1.65).toFixed(2)),
+            costo: Number(unitCost.toFixed(2)),
+            stock: qty
+          });
+        }
+        return { ok: true };
+      }
+
+      if (payload.action === 'eliminarProducto') {
+        demoStore.catalogo = demoStore.catalogo.filter(
+          (p) => p.nombre !== payload.producto
+        );
+        return { ok: true };
+      }
+
+      return { ok: true };
+    }
+
+    // Carga inicial y recarga del Dashboard (GET ?action=getDashboardData)
+    async function cargarDatosDashboard() {
+      try {
+        let rawData;
+
+        if (isDemoMode()) {
+          document.getElementById('demoBanner').classList.add('visible');
+          rawData = demoStore;
+        } else {
+          document.getElementById('demoBanner').classList.remove('visible');
+          const res = await fetch(`${API_URL}?action=getDashboardData`, {
+            method: 'GET',
+            redirect: 'follow'
+          });
+          if (!res.ok) {
+            throw new Error(`HTTP ${res.status}`);
+          }
+          rawData = await res.json();
+        }
+
+        const normalized = normalizeDashboardData(rawData);
+        state.catalogo = normalized.catalogo;
+        state.ventas = normalized.ventas;
+        state.metricas = normalized.metricas;
+
+        renderSelects();
+        renderMetrics();
+        renderInventarioTable();
+        renderVentasTable();
+        updateLiveVenta();
+        updateLiveIngreso();
+      } catch (err) {
+        console.error('Error cargando datos:', err);
+        notify(
+          'error',
+          'No se pudo cargar la información',
+          'Verifica la URL de Apps Script y los permisos del despliegue.'
+        );
+      }
+    }
+
+    // Llenar ambos <select> con el catálogo dinámico
+    function renderSelects() {
+      const selectVenta = document.getElementById('ventaProducto');
+      const selectIngreso = document.getElementById('ingresoProductoSelect');
+
+      const prevVenta = selectVenta.value;
+      const prevIngreso = selectIngreso.value;
+
+      if (state.catalogo.length === 0) {
+        selectVenta.innerHTML = '<option value="">No hay prendas registradas</option>';
+        selectIngreso.innerHTML = '<option value="">No hay prendas registradas</option>';
+        return;
+      }
+
+      const ventaOptions = ['<option value="">Selecciona una prenda...</option>']
+        .concat(
+          state.catalogo.map((p) => {
+            const label = `${escapeHtml(p.nombre)} — ${formatBs(p.precio)} (Stock: ${p.stock})`;
+            return `<option value="${escapeHtml(p.nombre)}">${label}</option>`;
+          })
+        )
+        .join('');
+
+      const ingresoOptions = ['<option value="">Selecciona una prenda...</option>']
+        .concat(
+          state.catalogo.map(
+            (p) =>
+              `<option value="${escapeHtml(p.nombre)}">${escapeHtml(p.nombre)} (Stock actual: ${p.stock})</option>`
+          )
+        )
+        .join('');
+
+      selectVenta.innerHTML = ventaOptions;
+      selectIngreso.innerHTML = ingresoOptions;
+
+      if (state.catalogo.some((p) => p.nombre === prevVenta)) {
+        selectVenta.value = prevVenta;
+      }
+      if (state.catalogo.some((p) => p.nombre === prevIngreso)) {
+        selectIngreso.value = prevIngreso;
+      }
+    }
+
+    // Renderizar tarjetas de métricas
+    function renderMetrics() {
+      document.getElementById('metricIngresos').textContent = formatBs(state.metricas.ingresos);
+      document.getElementById('metricGanancia').textContent = formatBs(state.metricas.ganancia);
+      document.getElementById('metricVendidas').textContent =
+        Number(state.metricas.prendasVendidas || 0).toLocaleString('es-BO');
+      document.getElementById('metricBodega').textContent = formatBs(state.metricas.valorBodega);
+    }
+
+    // Renderizar tabla de Inventario Completo con botón Borrar (papelera roja)
+    function renderInventarioTable() {
+      const tbody = document.getElementById('tbodyInventario');
+      const query = state.filtroInventario.trim().toLowerCase();
+
+      const filtrados = state.catalogo.filter((p) =>
+        p.nombre.toLowerCase().includes(query)
+      );
+
+      if (filtrados.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="5" class="empty-state">
+              ${query ? 'No se encontraron prendas que coincidan con tu búsqueda.' : 'Aún no hay prendas en el inventario.'}
+            </td>
+          </tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtrados
+        .map((p) => {
+          let badgeClass = 'badge-ok';
+          if (p.stock <= 0) badgeClass = 'badge-out';
+          else if (p.stock <= 4) badgeClass = 'badge-low';
+
+          return `
+            <tr>
+              <td style="font-weight: 600;">${escapeHtml(p.nombre)}</td>
+              <td class="num-cell">${formatBs(p.precio)}</td>
+              <td class="num-cell" style="color: var(--text-secondary);">${formatBs(p.costo)}</td>
+              <td>
+                <span class="badge ${badgeClass}">${p.stock} uds.</span>
+              </td>
+              <td style="text-align: right;">
+                <button
+                  type="button"
+                  class="btn-delete"
+                  data-delete-producto="${escapeHtml(p.nombre)}"
+                  title="Eliminar ${escapeHtml(p.nombre)}"
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                  </svg>
+                  Borrar
+                </button>
+              </td>
+            </tr>
+          `;
+        })
+        .join('');
+    }
+
+    // Renderizar tabla de Historial de Ventas
+    function renderVentasTable() {
+      const tbody = document.getElementById('tbodyVentas');
+
+      if (state.ventas.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="empty-state">Aún no se han registrado ventas.</td>
+          </tr>`;
+        return;
+      }
+
+      tbody.innerHTML = state.ventas
+        .map((v) => {
+          const profitClass = v.ganancia >= 0 ? 'profit-positive' : 'profit-negative';
+          return `
+            <tr>
+              <td style="color: var(--text-secondary); font-size: 0.85rem;">${escapeHtml(v.fecha)}</td>
+              <td style="font-weight: 600;">${escapeHtml(v.producto)}</td>
+              <td><span class="badge badge-purple">${v.cantidad} uds.</span></td>
+              <td class="num-cell">${formatBs(v.precioVenta)}</td>
+              <td class="num-cell">${formatBs(v.total)}</td>
+              <td class="num-cell ${profitClass}">${formatBs(v.ganancia)}</td>
+              <td><span class="badge badge-purple">${escapeHtml(v.vendedor || 'Desconocido')}</span></td>
+            </tr>
+          `;
+        })
+        .join('');
+    }
+
+    // =========================================================
+    // LÓGICA VISTA REGISTRAR VENTA
+    // =========================================================
+    function onVentaProductoChange() {
+      const nombre = document.getElementById('ventaProducto').value;
+      const item = state.catalogo.find((p) => p.nombre === nombre);
+      const precioInput = document.getElementById('ventaPrecio');
+      const costoInput = document.getElementById('ventaCosto');
+      const stockBadge = document.getElementById('ventaStockBadge');
+
+      if (item) {
+        precioInput.value = item.precio.toFixed(2);
+        costoInput.value = item.costo.toFixed(2);
+        stockBadge.textContent = `Stock disponible: ${item.stock} uds.`;
+        stockBadge.classList.remove('hidden');
+      } else {
+        precioInput.value = '';
+        costoInput.value = '';
+        stockBadge.classList.add('hidden');
+      }
+      updateLiveVenta();
+    }
+
+    function updateLiveVenta() {
+      const cantidad = Math.max(0, Number(document.getElementById('ventaCantidad').value) || 0);
+      const precio = Math.max(0, Number(document.getElementById('ventaPrecio').value) || 0);
+      const costo = Math.max(0, Number(document.getElementById('ventaCosto').value) || 0);
+
+      const total = cantidad * precio;
+      const ganancia = (precio - costo) * cantidad;
+      const margen = total > 0 ? (ganancia / total) * 100 : 0;
+
+      document.getElementById('liveVentaTotal').textContent = formatBs(total);
+      document.getElementById('liveVentaDetalle').textContent =
+        `${cantidad} ${cantidad === 1 ? 'unidad' : 'unidades'} × ${formatBs(precio)}`;
+
+      const gananciaEl = document.getElementById('liveVentaGanancia');
+      gananciaEl.textContent = formatBs(ganancia);
+      gananciaEl.classList.toggle('profit-positive', ganancia >= 0);
+      gananciaEl.classList.toggle('profit-negative', ganancia < 0);
+
+      document.getElementById('liveVentaMargen').textContent =
+        `Margen sobre venta: ${margen.toFixed(1)}%`;
+    }
+
+    async function handleVentaSubmit(e) {
+      e.preventDefault();
+      const producto = document.getElementById('ventaProducto').value;
+      const cantidad = Number(document.getElementById('ventaCantidad').value);
+      const precioVenta = Number(document.getElementById('ventaPrecio').value);
+      const costoCompra = Number(document.getElementById('ventaCosto').value) || 0;
+
+      if (!producto) {
+        notify('warning', 'Selecciona una prenda', 'Debes elegir una prenda del catálogo.');
+        return;
+      }
+      if (!cantidad || cantidad <= 0) {
+        notify('warning', 'Cantidad inválida', 'Ingresa una cantidad mayor a cero.');
+        return;
+      }
+
+      const item = state.catalogo.find((p) => p.nombre === producto);
+      if (item && item.stock < cantidad) {
+        const proceed = await askConfirm(
+          'Stock insuficiente',
+          `Solo hay ${item.stock} unidades registradas de "${producto}". ¿Deseas registrar la venta de todos modos?`,
+          'Sí, registrar'
+        );
+        if (!proceed) return;
+      }
+
+      const total = Number((cantidad * precioVenta).toFixed(2));
+      const ganancia = Number(((precioVenta - costoCompra) * cantidad).toFixed(2));
+
+      const btn = document.getElementById('btnSubmitVenta');
+      btn.disabled = true;
+
+      try {
+        const vendedor = sessionStorage.getItem('vendedor_actual') || localStorage.getItem('vendedor_actual') || 'Desconocido';
+        await postToApi({
+          action: 'registrarVenta',
+          producto,
+          cantidad,
+          precioVenta,
+          costoCompra,
+          total,
+          ganancia,
+          vendedor
+        });
+
+        e.target.reset();
+        document.getElementById('ventaCantidad').value = 1;
+        document.getElementById('ventaCosto').value = '';
+        document.getElementById('ventaStockBadge').classList.add('hidden');
+
+        await cargarDatosDashboard();
+        notify('success', '¡Venta registrada!', `Se registró la venta de ${producto} por ${formatBs(total)}.`);
+      } catch (err) {
+        notify('error', 'Error al registrar venta', err.message);
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    // =========================================================
+    // LÓGICA VISTA REGISTRAR INGRESO
+    // =========================================================
+    function setIngresoModo(modo) {
+      state.ingresoModo = modo;
+      const isExistente = modo === 'existente';
+
+      document.getElementById('switchExistente').classList.toggle('active', isExistente);
+      document.getElementById('switchExistente').setAttribute('aria-selected', String(isExistente));
+      document.getElementById('switchNueva').classList.toggle('active', !isExistente);
+      document.getElementById('switchNueva').setAttribute('aria-selected', String(!isExistente));
+
+      document.getElementById('groupIngresoExistente').classList.toggle('hidden', !isExistente);
+      document.getElementById('groupIngresoNueva').classList.toggle('hidden', isExistente);
+
+      document.getElementById('ingresoProductoSelect').required = isExistente;
+      document.getElementById('ingresoProductoInput').required = !isExistente;
+
+      updateLiveIngreso();
+    }
+
+    function updateLiveIngreso() {
+      const cantidad = Math.max(0, Number(document.getElementById('ingresoCantidad').value) || 0);
+      const costoTotal = Math.max(0, Number(document.getElementById('ingresoCostoTotal').value) || 0);
+
+      const costoUnitario = cantidad > 0 ? costoTotal / cantidad : 0;
+      document.getElementById('liveIngresoUnitario').textContent = formatBs(costoUnitario);
+      document.getElementById('liveIngresoFormula').textContent =
+        cantidad > 0
+          ? `${formatBs(costoTotal)} ÷ ${cantidad} ${cantidad === 1 ? 'unidad' : 'unidades'}`
+          : 'Costo Total ÷ Cantidad';
+
+      let ponderado = costoUnitario;
+      let infoText = 'Para prenda nueva, equivale al costo unitario de ingreso';
+
+      if (state.ingresoModo === 'existente') {
+        const nombre = document.getElementById('ingresoProductoSelect').value;
+        const item = state.catalogo.find((p) => p.nombre === nombre);
+        if (item) {
+          const stockPrev = Math.max(0, item.stock);
+          const totalUnits = stockPrev + cantidad;
+          ponderado = totalUnits > 0 ? ((stockPrev * item.costo) + costoTotal) / totalUnits : costoUnitario;
+          infoText = `Stock previo: ${stockPrev} uds. a ${formatBs(item.costo)} c/u → Nuevo stock: ${totalUnits} uds.`;
+        } else {
+          infoText = 'Selecciona una prenda para calcular el promedio ponderado';
+        }
+      }
+
+      document.getElementById('liveIngresoPonderado').textContent = formatBs(ponderado);
+      document.getElementById('liveIngresoStockInfo').textContent = infoText;
+    }
+
+    async function handleIngresoSubmit(e) {
+      e.preventDefault();
+      const isExistente = state.ingresoModo === 'existente';
+      const producto = isExistente
+        ? document.getElementById('ingresoProductoSelect').value.trim()
+        : document.getElementById('ingresoProductoInput').value.trim();
+
+      const cantidad = Number(document.getElementById('ingresoCantidad').value);
+      const costoTotal = Number(document.getElementById('ingresoCostoTotal').value);
+
+      if (!producto) {
+        notify('warning', 'Falta la prenda', 'Indica el nombre o selecciona una prenda.');
+        return;
+      }
+      if (!cantidad || cantidad <= 0) {
+        notify('warning', 'Cantidad inválida', 'Ingresa una cantidad mayor a cero.');
+        return;
+      }
+      if (Number.isNaN(costoTotal) || costoTotal < 0) {
+        notify('warning', 'Costo inválido', 'Ingresa un costo total válido en Bs.');
+        return;
+      }
+
+      const costoUnitario = Number((costoTotal / cantidad).toFixed(2));
+      const btn = document.getElementById('btnSubmitIngreso');
+      btn.disabled = true;
+
+      try {
+        await postToApi({
+          action: 'registrarIngreso',
+          tipo: isExistente ? 'existente' : 'nueva',
+          esNueva: !isExistente,
+          producto,
+          cantidad,
+          costoTotal,
+          costoUnitario
+        });
+
+        e.target.reset();
+        document.getElementById('ingresoCantidad').value = 1;
+        setIngresoModo(state.ingresoModo);
+
+        await cargarDatosDashboard();
+        notify(
+          'success',
+          '¡Ingreso guardado!',
+          `Se agregaron ${cantidad} uds. de "${producto}" (Costo unitario: ${formatBs(costoUnitario)}).`
+        );
+      } catch (err) {
+        notify('error', 'Error al registrar ingreso', err.message);
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    // =========================================================
+    // ELIMINAR PRODUCTO DEL INVENTARIO
+    // =========================================================
+    async function handleDeleteProducto(nombreProducto) {
+      const confirmed = await askConfirm(
+        '¿Eliminar prenda del inventario?',
+        `Se eliminará "${nombreProducto}" de Tienda Warani. Esta acción no se puede deshacer.`,
+        'Sí, borrar'
+      );
+
+      if (!confirmed) return;
+
+      try {
+        await postToApi({
+          action: 'eliminarProducto',
+          producto: nombreProducto
+        });
+
+        await cargarDatosDashboard();
+        notify('success', 'Producto eliminado', `"${nombreProducto}" fue retirado del inventario.`);
+      } catch (err) {
+        notify('error', 'No se pudo eliminar', err.message);
+      }
+    }
+
+    // =========================================================
+    // INICIALIZACIÓN DE EVENTOS
+    // =========================================================
+    document.addEventListener('DOMContentLoaded', () => {
+      setupNavigation();
+
+      // Eventos Vista Venta
+      document.getElementById('ventaProducto').addEventListener('change', onVentaProductoChange);
+      document.getElementById('ventaCantidad').addEventListener('input', updateLiveVenta);
+      document.getElementById('ventaPrecio').addEventListener('input', updateLiveVenta);
+      document.getElementById('formVenta').addEventListener('submit', handleVentaSubmit);
+
+      // Eventos Vista Ingreso
+      document.getElementById('switchExistente').addEventListener('click', () => setIngresoModo('existente'));
+      document.getElementById('switchNueva').addEventListener('click', () => setIngresoModo('nueva'));
+      document.getElementById('ingresoProductoSelect').addEventListener('change', updateLiveIngreso);
+      document.getElementById('ingresoCantidad').addEventListener('input', updateLiveIngreso);
+      document.getElementById('ingresoCostoTotal').addEventListener('input', updateLiveIngreso);
+      document.getElementById('formIngreso').addEventListener('submit', handleIngresoSubmit);
+
+      // Eventos Dashboard & Inventario
+      document.getElementById('searchInventario').addEventListener('input', (e) => {
+        state.filtroInventario = e.target.value;
+        renderInventarioTable();
+      });
+
+      document.getElementById('btnRefrescarDashboard').addEventListener('click', cargarDatosDashboard);
+
+      // Delegación de eventos para botón Borrar en cada fila
+      document.getElementById('tbodyInventario').addEventListener('click', (e) => {
+        const deleteBtn = e.target.closest('[data-delete-producto]');
+        if (!deleteBtn) return;
+        const nombre = deleteBtn.getAttribute('data-delete-producto');
+        if (nombre) {
+          handleDeleteProducto(nombre);
+        }
+      });
+
+      // Eventos de Autenticación (Login, ver/ocultar clave y Cerrar Sesión)
+      setupPasswordToggle();
+      document.getElementById('formLogin').addEventListener('submit', handleLoginSubmit);
+      document.getElementById('btnLogout').addEventListener('click', handleLogout);
+
+      // Protección de rutas: validar sesión en localStorage o sessionStorage
+      const activeSession = getStoredSession();
+      if (activeSession) {
+        showAppShell();
+        cargarDatosDashboard();
+      } else {
+        showLoginScreen();
+      }
+    });
+  </script>
+</body>
+</html>
