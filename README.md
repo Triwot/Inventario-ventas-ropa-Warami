@@ -39,12 +39,9 @@ En lugar de una base de datos relacional tradicional (como MySQL o PostgreSQL), 
 
 **Hosting:**
 * Netlify (Despliegue continuo y alojamiento frontend)
-# 🛍️ Tienda Warani - POS & Gestión de Inventario Serverless
-
+  
 🌐 **Demo en Vivo:** [Visitar Tienda Warani](https://tu-enlace-de-warani.netlify.app)
 *(Nota: Inicia sesión con tus credenciales de administrador para ver el dashboard).*
-
-Un sistema web de Punto de Venta (POS) y control de inventario diseñado específicamente para digitalizar y optimizar la gestión comercial de una tienda de ropa. Este proyecto transforma operaciones manuales en un flujo digital automatizado, permitiendo monitorear métricas financieras en tiempo real y asegurar la rentabilidad del negocio.
 
 ## 🚀 Instalación y Uso Local
 
